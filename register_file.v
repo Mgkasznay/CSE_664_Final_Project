@@ -72,18 +72,52 @@ parameter index_size = 4; // 4 bits = 16 decimal, because we have 16 registers t
 	
 	initial
 	begin
+		// write 7 to register 2, read register 0 and 2
 		write_enable = 1;
 		write_address = 2;
-		write_data = 16;
-		read_address1 = 2;
-		read_address2 = 0;
+		write_data = 7;
+		read_address1 = 0;
+		read_address2 = 2;
 		#20;
 	
+		// write 15 to register 2, read register 0 and 2
 		write_enable = 1;
 		write_address = 2;
-		write_data = 32;
-		read_address1 = 2;
-		read_address2 = 0;
+		write_data = 8;
+		read_address1 = 0;
+		read_address2 = 2;
+		#20;
 
+		// write 255 to register 0, read register 0 and 2 
+		write_enable = 1;
+		write_address = 0;
+		write_data = 255;
+		read_address1 = 0;
+		read_address2 = 2;
+		#20;		
+
+		// don't write anything (should ignore write_data), read register 0 and 2
+		write_enable = 0;
+		write_address = 2;
+		write_data = 2;
+		read_address1 = 0;
+		read_address2 = 2;
+		#20;
+
+		// don't write anything (should ignore write_data), read register 2 and 15
+		write_enable = 0;
+		write_address = 2;
+		write_data = 2;
+		read_address1 = 2;
+		read_address2 = 15;
+		#20;
+
+		// write 4 to register 15, read register 2 and 15
+		write_enable = 1;
+		write_address = 15;
+		write_data = 4;
+		read_address1 = 2;
+		read_address2 = 15;
+		#20;
 	end
 endmodule
