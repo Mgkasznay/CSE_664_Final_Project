@@ -3,7 +3,7 @@
 // output: Instruction value
 
 //Instruction memory provides the instruction at the program counter address
-module register_file (ins_val, prog_count);
+module ins_register_file (ins_val, prog_count);
 
 parameter word_size  = 8; // each instruction is 8 bits, or 256 words
 parameter num_ins    = 16; // 16 total instruction in file
