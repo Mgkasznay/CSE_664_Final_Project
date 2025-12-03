@@ -10,7 +10,7 @@ always @ (posedge clk)
 begin
 	if (loadPC) //Load selected program counter
 	begin
-		ins_mem = selPC;
+		ins_mem = selPC[3:0];
 	end
 	else if (incPC) //Increament program counter
 	begin
