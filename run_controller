@@ -1,0 +1,31 @@
+# ============================================================
+# ModelSim DO File for Controller FSM Testbench
+# ============================================================
+
+# Clean previous work library (optional but recommended)
+vlib work
+vmap work work
+
+# ------------------------------------------------------------
+# Compile design files
+# ------------------------------------------------------------
+vlog controller_fsm
+vlog tb_controller_fsm
+
+# ------------------------------------------------------------
+# Load simulation
+# ------------------------------------------------------------
+vsim tb_controller_fsm
+
+# ------------------------------------------------------------
+# Add all signals to waveform
+# ------------------------------------------------------------
+add wave -r sim:/tb_controller_fsm/*
+
+# Optional: expand the DUT internals automatically
+add wave -r sim:/tb_controller_fsm/DUT/*
+
+# ------------------------------------------------------------
+# Run simulation until testbench stops
+# ------------------------------------------------------------
+run -all

@@ -1,0 +1,179 @@
+`timescale 1ns/1ps
+
+module tb_controller_fsm;
+
+    reg clk;
+    reg [7:0] instr;
+    reg flagZ, flagN;
+
+    wire loadIR, incPC, loadPC, loadAcc, loadReg;
+    wire selPC;
+    wire [1:0] selACC;
+    wire [3:0] aluOp;
+    wire halt;
+
+    // Instantiate the FSM
+    controller_fsm DUT (
+        .clk(clk),
+        .instr(instr),
+        .flagZ(flagZ),
+        .flagN(flagN),
+        .loadIR(loadIR),
+        .incPC(incPC),
+        .loadPC(loadPC),
+        .loadAcc(loadAcc),
+        .loadReg(loadReg),
+        .selPC(selPC),
+        .selACC(selACC),
+        .aluOp(aluOp),
+        .halt(halt)
+    );
+
+    // 10ns clock period
+    initial begin
+        clk = 0;
+        forever #5 clk = ~clk;
+    end
+
+    initial begin
+        // Initialize flags
+        flagZ = 0;
+        flagN = 0;
+
+        //==========================================================
+        // WHY WE USE #20:
+        // Each instruction requires:
+        //   FETCH rising edge  (~5ns)
+        //   EXEC rising edge   (~15ns)
+        // Total time: ~20ns
+        //==========================================================
+
+        //==========================================================
+        // TEST 1 ? NOP Instruction
+        // opcode = 0000
+        // operand ignored
+        //
+        // Expected EXEC behavior:
+        //   - No control signals asserted
+        //==========================================================
+        instr = 8'b0000_1010;
+        #20;
+
+        //==========================================================
+        // TEST 2 ? ADD R3
+        // opcode = 0001
+        // operand = 0011 ? Register 3
+        //
+        // Expected EXEC behavior:
+        //   - aluOp   = 0001 (ADD)
+        //   - selACC  = 00 (ALU output)
+        //   - loadAcc = 1 (ACC gets ALU result)
+        //==========================================================
+        instr = 8'b0001_0011;     // ADD using register 3
+        #20;
+
+        //==========================================================
+        // TEST 3 ? SUB R2
+        // opcode = 0010
+        // operand = 0010 ? Register 2
+        //
+        // Expected EXEC:
+        //   - aluOp   = 0010 (SUB)
+        //   - loadAcc = 1
+        //==========================================================
+        instr = 8'b0010_0010;
+        #20;
+
+        //==========================================================
+        // TEST 4 ? NOR R5
+        // opcode = 0011
+        // operand = 0101 ? Register 5
+        //
+        // Expected EXEC:
+        //   - aluOp   = 0011 (NOR)
+        //   - loadAcc = 1
+        //==========================================================
+        instr = 8'b0011_0101;
+        #20;
+
+        //==========================================================
+        // TEST 5 ? Register ? ACC
+        // opcode = 0100
+        // operand = 0110 ? Register 6
+        //
+        // Expected EXEC:
+        //   - selACC  = 01 (take register file output)
+        //   - loadAcc = 1
+        //==========================================================
+        instr = 8'b0100_0110;
+        #20;
+
+        //==========================================================
+        // TEST 6 ? ACC ? Register
+        // opcode = 0101
+        // operand = 0011 ? Register 3
+        //
+        // Expected EXEC:
+        //   - loadReg = 1 (write ACC ? RF[3])
+        //==========================================================
+        instr = 8'b0101_0011;
+        #20;
+
+        //==========================================================
+        // TEST 7 ? Immediate ? ACC
+        // opcode = 1101
+        // operand = 1100 ? immediate 0xC
+        //
+        // Expected EXEC:
+        //   - selACC  = 10 (immediate)
+        //   - loadAcc = 1
+        //==========================================================
+        instr = 8'b1101_1100;
+        #20;
+
+        //==========================================================
+        // TEST 8 ? Branch if Zero, Reg ? PC
+        // opcode = 0110
+        // operand = 0101 ? Register 5
+        //
+        // PRECONDITION: flagZ = 1 (ACC == 0)
+        //
+        // Expected EXEC when Z=1:
+        //   - selPC  = 0 (take register file output)
+        //   - loadPC = 1
+        //==========================================================
+        flagZ = 1;
+        instr = 8'b0110_0101;
+        #20;
+
+        //==========================================================
+        // TEST 9 ? Branch if Negative, Imm ? PC
+        // opcode = 1001
+        // operand = 1010 ? immediate 0xA
+        //
+        // PRECONDITION: flagN = 1 (ACC < 0)
+        //
+        // Expected EXEC when N=1:
+        //   - selPC  = 1 (immediate)
+        //   - loadPC = 1
+        //==========================================================
+        flagZ = 0;
+        flagN = 1;
+        instr = 8'b1001_1010;
+        #20;
+
+        //==========================================================
+        // TEST 10 ? HALT Instruction
+        // opcode = 1111
+        //
+        // Expected EXEC:
+        //   - halt = 1
+        //   - FSM enters HALT_STATE next cycle
+        //==========================================================
+        instr = 8'b1111_0000;
+        #20;
+
+        $stop;
+    end
+
+endmodule
