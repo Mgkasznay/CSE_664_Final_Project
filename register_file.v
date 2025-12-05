@@ -5,7 +5,7 @@
 // value only updated if instruction is to move ACC to register
 
 // register file needs 16 8-bit registers
-module register_file (read_data1, read_data2, clk, write_enable, write_address, write_data, read_address1, read_address2);
+module register_file (data_out, clk, loadReg, regAdd, data_in);
 
 parameter word_size  = 8; // each register is 8 bits, or 256 words
 parameter num_reg    = 16; // 16 total registers in file
@@ -13,33 +13,26 @@ parameter index_size = 4; // 4 bits = 16 decimal, because we have 16 registers t
 
 
 // [MSB:LSB], most significant bit, least significant bit
-// readData1 is word_size bits wide (in this case, 8 bits or 256 words)
-output	[word_size-1:0] read_data1;
-output	[word_size-1:0] read_data2;
+// data_out is word_size bits wide (in this case, 8 bits or 256 words)
+output	[word_size-1:0] data_out;
 
 input	clk;
 
-input	write_enable; // indicates whether we're writing to a register
-input	[index_size-1:0] write_address; // indicates which register we want to write to (register 1-16)
-input	[word_size-1:0] write_data; // indicates what data we want to write (max size 8 bits or 256 words)
-
-input	[index_size-1:0] read_address1; // indicates which register we want to read the contents of (register 1-16)
-input	[index_size-1:0] read_address2; // indicates which register we want to read the contents of (register 1-16)
-
+input	loadReg; // indicates whether we're writing to a register
+input	[index_size-1:0] regAdd; // indicates which register we want to write to (if loadReg = 1) and/or read from (ranging from register 0 - 15)
+input	[word_size-1:0] data_in; // indicates what data we want to write (if loadReg = 1) (max size 8 bits or 256 words)
 
 reg [word_size-1:0] regs[num_reg-1:0]; // create 16 registers (num_reg 0 through 15), each 8 bits wide (word_size)
 
 always @(posedge clk)
 begin
-	if (write_enable) // if write_enable == 1, we are writing data to a specified address
+	if (loadReg) // if loadReg == 1, we are writing data to the specified address
 	begin
-	regs[write_address] <= write_data;
+	regs[regAdd] <= data_in;
 	end
 end
 
-
-assign read_data1 = regs[read_address1];
-assign read_data2 = regs[read_address2];
+assign data_out = regs[regAdd]; // regardless of whether we are writing data, output the value at the specified address
 
 endmodule
 
@@ -52,19 +45,18 @@ parameter index_size = 4; // 4 bits = 16 decimal, because we have 16 registers t
 
 	//input
 	reg clk;
-	reg write_enable;
-	reg [index_size-1:0] write_address;
-	reg [word_size-1:0] write_data;
-
-	reg [index_size-1:0] read_address1;
-	reg[index_size-1:0] read_address2;
+	reg loadReg;
+	reg [index_size-1:0] regAdd;
+	reg [word_size-1:0] data_in;
 
 	//output
-	wire [word_size-1:0] read_data1;
-        wire [word_size-1:0] read_data2;
+	wire [word_size-1:0] data_out;
 
-	register_file MUT (read_data1, read_data2, clk, write_enable, write_address, write_data, read_address1, read_address2);
+	register_file MUT (data_out, clk, loadReg, regAdd, data_in);
 	initial clk = 0;
+	initial loadReg = 0;
+	initial regAdd = 0;
+	initial data_in = 0;
 
 	//every 5 second, clk changes between 0 and 1.
 	//every 10 seconds is a positive edge
@@ -72,52 +64,34 @@ parameter index_size = 4; // 4 bits = 16 decimal, because we have 16 registers t
 	
 	initial
 	begin
-		// write 7 to register 2, read register 0 and 2
-		write_enable = 1;
-		write_address = 2;
-		write_data = 7;
-		read_address1 = 0;
-		read_address2 = 2;
+		// write 7 to register 2, read register 2
+		loadReg = 1;
+		regAdd = 2;
+		data_in = 7;
 		#20;
 	
-		// write 15 to register 2, read register 0 and 2
-		write_enable = 1;
-		write_address = 2;
-		write_data = 8;
-		read_address1 = 0;
-		read_address2 = 2;
+		// write 15 to register 2, read register 2
+		loadReg = 1;
+		regAdd = 2;
+		data_in = 15;
 		#20;
 
-		// write 255 to register 0, read register 0 and 2 
-		write_enable = 1;
-		write_address = 0;
-		write_data = 255;
-		read_address1 = 0;
-		read_address2 = 2;
+		// write 255 to register 0, read register 0
+		loadReg = 1;
+		regAdd = 0;
+		data_in = 255;
 		#20;		
 
-		// don't write anything (should ignore write_data), read register 0 and 2
-		write_enable = 0;
-		write_address = 2;
-		write_data = 2;
-		read_address1 = 0;
-		read_address2 = 2;
+		// don't write anything (should ignore write_data), read register 2
+		loadReg = 0;
+		regAdd = 2;
+		data_in = 4;
 		#20;
 
-		// don't write anything (should ignore write_data), read register 2 and 15
-		write_enable = 0;
-		write_address = 2;
-		write_data = 2;
-		read_address1 = 2;
-		read_address2 = 15;
-		#20;
-
-		// write 4 to register 15, read register 2 and 15
-		write_enable = 1;
-		write_address = 15;
-		write_data = 4;
-		read_address1 = 2;
-		read_address2 = 15;
+		// write 4 to register 2, read register 2
+		loadReg = 1;
+		regAdd = 2;
+		data_in = 4;
 		#20;
 	end
 endmodule
