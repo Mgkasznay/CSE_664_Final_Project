@@ -24,7 +24,8 @@
 
 module controller_fsm (
     input        clk,
-    input  [7:0] instr,   // Instruction from IR
+    //input  [7:0] instr,   // Instruction from IR (LZ - we don't need this bc Instruction Register already decodes the instruction. We can directly input the opcode from Instruction Register)
+    input reg [3:0] opcode, // (LZ - replacing previous line with this line, due to aforementioned Instruction Register)
     input        flagZ,   // ALU zero flag
     input        flagN,   // ALU negative flag (ACC[7] == 1)
 
@@ -49,9 +50,9 @@ module controller_fsm (
 
     reg [1:0] state = FETCH;
 
-    // Instruction field extraction
-    wire [3:0] opcode  = instr[7:4];
-    wire [3:0] operand = instr[3:0];
+    // Instruction field extraction (LZ - we don't need this because the Instruction Register already decodes the instruction. We can directly input the opcode from Instruction Register)
+    // wire [3:0] opcode  = instr[7:4];
+    // wire [3:0] operand = instr[3:0];
 
     //=================================================================
     // STATE TRANSITIONS (Sequential)
