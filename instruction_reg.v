@@ -11,8 +11,8 @@ always @ (posedge clk)
 begin
 	if (loadIR) //Load instruction register
 	begin
-		opcode = ins_reg[3:0]; //Set opcode value
-		imed_reg = ins_reg[7:4]; //Set imediate value
+		opcode = ins_reg[7:4]; //Set opcode value; LZ - I changed this from ins_reg[3:0] to [7:4] to match Samuel's controller
+		imed_reg = ins_reg[3:0]; //Set imediate value; LZ - I changed this from ins_reg[7:4] to [3:0] to match Samuel's controller
 	end
 	else
 	begin
