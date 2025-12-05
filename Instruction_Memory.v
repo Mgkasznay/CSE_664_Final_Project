@@ -16,23 +16,23 @@ input	[index_size-1:0] prog_count; // indicates which instruction we want to rea
 
 reg [word_size-1:0] ins[num_ins-1:0]; // create 16 instructions
 
-//assign instruction values
-assign ins[0] = 16'h00;
-assign ins[1] = 16'h00;
-assign ins[2] = 16'h00;
-assign ins[3] = 16'h00;
-assign ins[4] = 16'h00;
-assign ins[5] = 16'h00;
-assign ins[6] = 16'h00;
-assign ins[7] = 16'h00;
-assign ins[8] = 16'h00;
-assign ins[9] = 16'h00;
-assign ins[10] = 16'h00;
-assign ins[11] = 16'h00;
-assign ins[12] = 16'h00;
-assign ins[13] = 16'h00;
-assign ins[14] = 16'h00;
-assign ins[15] = 16'h00;
+//assign instruction values (LZ - I changed from hexadecimal to binary representation of 8 bits)
+assign ins[0] = 8'b00000000;
+assign ins[1] = 8'b00000000;
+assign ins[2] = 8'b00000000;
+assign ins[3] = 8'b00000000;
+assign ins[4] = 8'b00000000;
+assign ins[5] = 8'b00000000;
+assign ins[6] = 8'b00000000;
+assign ins[7] = 8'b00000000;
+assign ins[8] = 8'b00000000;
+assign ins[9] = 8'b00000000;
+assign ins[10] = 8'b00000000;
+assign ins[11] = 8'b00000000;
+assign ins[12] = 8'b00000000;
+assign ins[13] = 8'b00000000;
+assign ins[14] = 8'b00000000;
+assign ins[15] = 8'b00000000;
 
 assign ins_val = ins[prog_count]; //assign instruction value to requested value
 
