@@ -106,11 +106,5 @@ ins_reg IR (
     .ins_reg(IRinput)
 );
 
-initial begin
-    wait (halt==1);
-    #20
-    $finish;
-end
-
 
 endmodule
