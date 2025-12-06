@@ -34,6 +34,10 @@ module cpu_phase1 (
     wire [7:0] instr_word;    // Instruction Memory ? IR input
     wire [3:0] opcode;        // IR output (upper 4 bits)
     wire [3:0] operand;       // IR output (lower 4 bits)
+    wire [7:0] altPC;         // Alternate program counter value
+    wire [7:0] selAcc0Out;    //Selected ACC 0 input from Mux 2
+    wire [7:0] selAcc1Out;    //Selected ACC 1 input from Mux 3
+    wire [7:0] ALUresult;     //Output result from the ALU
 
     // Control signals from Controller FSM
     wire loadIR, incPC, loadPC, loadAcc, loadReg, selPC, halt;
@@ -56,7 +60,7 @@ module cpu_phase1 (
         .clk(clk),
         .incPC(incPC), // 1 bit, tells you whether to incrememnt to the next instruction in Instruction Memory, comes from the Controller
         .loadPC(loadPC), // 1 bit, tells you whether to load a specific instruction number from the Instruction Memory, comes from the Controller
-	.selPC({4'b0000, operand})   // TEMPORARY: Use operand as immediate; 8 bit, if loadPC = 1, this is the instruction number we want to load from Instruction Memory, comes from the Controller
+	.altPC(altPC)   // Alternate Program counter; 8 bit, if loadPC = 1, this is the instruction number we want to load from Instruction Memory, comes from Mux 1
     );
 
     //=================================================================
@@ -93,13 +97,13 @@ module cpu_phase1 (
     //=================================================================
     register_file REG(
 	// output of Register File
-	.data_out(), // 8 bit, the value we're reading from a register specified by regAdd, goes to the Accumulator (via the ALU?) or Program Counter
+	.data_out(), //FIXME NEED SIGNAL HERE // 8 bit, the value we're reading from a register specified by regAdd, goes to the Accumulator (via the ALU?) or Program Counter
 
 	// input of Register File
 	.clk(clk),
 	.loadReg(loadReg), // 1 bit, if loadReg = 1, that indicates that we want to write/load a value to the register specified by regAdd, comes from the Controller
 	.regAdd(operand), // 4 bit, the register we want to write a value to (if loadReg = 1), and also the register we want to read from (regardless of whether loadReg = 1 or not. ranges from Register #0-#15, comes from Instruction Register
-	.data_in() // 8 bit, the value we are writing to the register specified by regAdd (if loadReg = 1), comes from the Accumulator
+	.data_in() //FIXME NEED SIGNAL HERE // 8 bit, the value we are writing to the register specified by regAdd (if loadReg = 1), comes from the Accumulator
     );
     //=================================================================
     //  CONTROLLER FSM
@@ -110,10 +114,10 @@ module cpu_phase1 (
         .loadIR(loadIR), // 1 bit, indicates whether to load an instruction from the Instruction Memory into the Instruction Register (so that the Instruction Register can decode the isntruction); goes to the Instruction Register
         .incPC(incPC), // 1 bit, indicates whether the Program Counter should increment, goes to the Program Counter
         .loadPC(loadPC), // 1 bit, indicates whether we want to load a specific instruction number to the Program Counter, goes to the Program Counter
-        .loadAcc(loadAcc),   // not used yet, 1 bit, indicates whether we want to store an immediate ALU result within the ACC
+        .loadAcc(loadAcc),   // 1 bit, indicates whether we want to store an immediate ALU result within the ACC
         .loadReg(loadReg),   // 1 bit, indicates whether we want to write/load a value to the Register File
-        .selPC(selPC), // 1 bit, THIS DOES NOT MATCH THE 8-bit selPC IN THE PROGRAM COUNTER; 0 = Reg -> PC, 1 = Imm -> PC
-        .selACC(selACC), // 2 bit, 00 = ALU -> ACC, 01 = Reg -> ACC, 10 = Imm -> ACC
+        .selPC(selPC), // 1 bit, selects between the immediate and register value for the program counter; 0 = Reg -> PC, 1 = Imm -> PC
+        .selACC(selACC), // 2 bit, 00 = Imm -> ACC, 01 = Reg -> ACC, 10 = ALU -> ACC
         .aluOp(aluOp), // 4 bit, indicates an ALU opcode corresponding to 0001: ADD, 0010: SUB, 0011: NOR, 1011: SHIFT LEFT, 1100: SHIFT RIGHT
         .halt(halt), // 1 bit, halt = 1 indicates we should halt our program
 
@@ -123,6 +127,75 @@ module cpu_phase1 (
 	.opcode(opcode), // 4 bit, comes from the Instruction Register (LZ - replacing previous line with this due to modification I made to the controller_fsm.v file. We don't need to read the full instruction, the Instruction Register already decodes the instruction so we can directly input the opcode from the Instruction Register)
         .flagZ(flagZ),	// 1 bit, ALU zero flag
         .flagN(flagN)	// ALU negative flag, ACC[7] = 1
+    );
+
+    //=================================================================
+    //  MUX 1
+    //  This MUX is used to select between the immediate value from the instruction register and the passed in register value to determine the alternate program counter
+    //=================================================================
+    mux MUX1 (
+	//Output of MUX 1
+	.out(altPC), //Alternate program counter value 8 bits, selected between the register and imediate value, used in the program counter
+	//Input to MUX 1
+	.a(), //FIXME NEED OUTPUT FROM REGISTER FILE HERE //Input A the register value 8 bits, selected when selPC = 0
+	.b({4'b0000, operand}), //Input B the immediate value 4 bits, selected when selPC = 1
+	.sel(selPC) //Select program counter value 1 bit, comes from the controller determines which source to get the altnerate program counter from
+     );
+
+    //=================================================================
+    //  MUX 2
+    //  This MUX is used to select between the immediate value from the instruction register and the passed in register value to determine the selected ACC 0 value
+    //=================================================================
+    mux MUX2 (
+	//Output of MUX 2
+	.out(selAcc0Out), //Selected output from the selection for the ACC from bit 0 of the selACC signal, 8 bits
+	//Input to MUX 2
+	.a({4'b0000, operand}), //Imediate value from the instruction register, 4 bits to be stored in the ACC selected if selACC bit 0 = 0
+	.b(), //FIXME NEED OUTPUT FROM REGISTER FILE HERE //Regitser value, 8 bits to be stored in the ACC selected if selACC bit 0 = 1
+	.sel(selACC[0]) //Select ACC bit 0 value used to select with value to store in the ACC
+    );
+
+    //=================================================================
+    //  MUX 3
+    //  This MUX is used to select between thes selected value output from MUX 2 and the value output from the ALU to determine the selected ACC 1 value
+    //=================================================================
+    mux MUX3 (
+	//Output of MUX 3
+	.out(selAcc1Out),  //Selected output from the selection for the ACC from bit 1 of the selACC signal
+	//Input to MUX 3
+	.a(selAcc0Out), //Selected output from the selection for the ACC selected if selACC bit 1 = 0, 8 bits
+	.b(ALUresult), //Output from the ALU 8 bits, selected if selACC bit 1 = 1
+	.sel(selACC[1]) //Select ACC bit 1 value used to select with value to store in the ACC
+    );
+
+    //=================================================================
+    //  ALU
+    //  ALU athrithmatic logic unit supports ADD, SUB, NOR, SHIFT LEFT, SHIFT RIGHT
+    //=================================================================
+    alu ALU (
+	//Output of ALU
+        .result(ALUresult), //Output from the ALU 8 bits, default value is 0
+        .Z(flagZ), // 1 bit, ALU zero flag
+        .C(C), //FIXME Where does this go??? //ALU 1 bit carry/borrow flag (for add/sub) ?C?
+        .N(flagN), // ALU negative flag, ACC[7] = 1
+	//Input to ALU
+        .A(), //Output from the ACC 8 bits, input A of the ALU
+        .B(), //FIXME NEED OUTPUT FROM REGISTER FILE HERE //Output from the register file 8 bits, input B of the ALU
+        .aluOp(aluOp) // 4 bit, indicates an ALU opcode corresponding to 0001: ADD, 0010: SUB, 0011: NOR, 1011: SHIFT LEFT, 1100: SHIFT RIGHT
+    );
+
+
+    //=================================================================
+    //  ACC
+    //  ACC ?accumulator? - register where an intermediate ALU result can be stored, temporary storage
+    //=================================================================
+    accumulator ACC (
+	//Output of ACC
+	.accOut(), //FIXME May go to regsiter memory somehow need a moderator in here
+	//Input to ACC
+        .clk(clk),
+        .loadAcc(loadAcc), // 1 bit, indicates whether we want to store an immediate ALU result within the ACC
+        .dataIn(selAcc1Out) //Selected output from the selection for the ACC from bit 1 of the selACC signal
     );
 
 endmodule

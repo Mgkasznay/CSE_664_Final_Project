@@ -148,7 +148,7 @@ module controller_fsm (
                     //=========================================================
                     4'b0001: begin
                         aluOp   = 4'b0001; // ALU = ADD
-                        selACC  = 2'b00;   // ACC ? ALU output
+                        selACC  = 2'b10;   // ACC ? ALU output
                         loadAcc = 1;
                     end
 
@@ -157,7 +157,7 @@ module controller_fsm (
                     //=========================================================
                     4'b0010: begin
                         aluOp   = 4'b0010; // ALU = SUB
-                        selACC  = 2'b00;
+                        selACC  = 2'b10;
                         loadAcc = 1;
                     end
 
@@ -166,7 +166,7 @@ module controller_fsm (
                     //=========================================================
                     4'b0011: begin
                         aluOp   = 4'b0011; // ALU = NOR
-                        selACC  = 2'b00;
+                        selACC  = 2'b10;
                         loadAcc = 1;
                     end
 
@@ -230,7 +230,7 @@ module controller_fsm (
                     //=========================================================
                     4'b1011: begin
                         aluOp   = 4'b1011; // ALU = SHIFT LEFT
-                        selACC  = 2'b00;
+                        selACC  = 2'b10;
                         loadAcc = 1;
                     end
 
@@ -239,7 +239,7 @@ module controller_fsm (
                     //=========================================================
                     4'b1100: begin
                         aluOp   = 4'b1100; // ALU = SHIFT RIGHT
-                        selACC  = 2'b00;
+                        selACC  = 2'b10;
                         loadAcc = 1;
                     end
 
@@ -250,7 +250,7 @@ module controller_fsm (
                     //
                     //=========================================================
                     4'b1101: begin
-                        selACC  = 2'b10;   // Select immediate
+                        selACC  = 2'b00;   // Select immediate
                         loadAcc = 1;
                     end
 
