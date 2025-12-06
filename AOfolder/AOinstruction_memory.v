@@ -18,20 +18,20 @@ reg [word_size-1:0] ins[num_ins-1:0]; // create 16 instructions
 
 //assign instruction values (LZ - I changed from hexadecimal to binary representation of 8 bits)
 initial begin
-    ins[0] = 8'b11011000;
-    ins[1] = 8'b01010001;
-    ins[2] = 8'b11010101;
-    ins[3] = 8'b01010010;
-    ins[4] = 8'b01000001;
-    ins[5] = 8'b00010010;
-    ins[6] = 8'b00100001;
-    ins[7] = 8'b11010101;
-    ins[8] = 8'b00110010;
-    ins[9] = 8'b10110000;
-    ins[10] = 8'b11000000;
-    ins[11] = 8'b00000000;
-    ins[12] = 8'b11110000;
-    ins[13] = 8'b00000000;
+    ins[0] = 8'b11011000; // 8 -> ACC
+    ins[1] = 8'b01010001; // ACC (8) -> R1
+    ins[2] = 8'b11010101; // 5 -> ACC
+    ins[3] = 8'b01010010; // ACC (5) -> R2
+    ins[4] = 8'b01000001; // R1 (8) -> ACC
+    ins[5] = 8'b00010010; // ACC (8) + R2 (5) -> ACC
+    ins[6] = 8'b00100001; // R1 (8) - ACC (13) -> ACC
+    ins[7] = 8'b11010101; // 5 -> ACC
+    ins[8] = 8'b00110010; // R2 (5) NOR ACC (5) -> ACC
+    ins[9] = 8'b10110000; // ACC ShiftLeft
+    ins[10] = 8'b11000000; // ACC ShiftRight
+    ins[11] = 8'b00000000; // NOP
+    ins[12] = 8'b11110000; // HALT
+    ins[13] = 8'b00000000; // Remaining instructions not performed because of HALT
     ins[14] = 8'b00000000;
     ins[15] = 8'b00000000;
 end
