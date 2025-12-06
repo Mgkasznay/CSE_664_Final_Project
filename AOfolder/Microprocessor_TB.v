@@ -67,8 +67,8 @@ accumulator ACM (
 );
 
 alu ALU (
-    .A(ACCoutput),
-    .B(RFoutput),
+    .A(RFoutput),
+    .B(ACCoutput),
     .aluOp(aluOp),
     .result(ALUresult),
     .Z(flagZ),
