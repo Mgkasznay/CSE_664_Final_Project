@@ -9,7 +9,7 @@ wire [7:0] instr; //Wire to represent the 8-bit instruction
 assign instr = {opcode, immediate}; //instr wire is the concatenation of opcode and immediate and is the input to the controller FSM module
 wire loadIR, incPC, selPC, loadPC, loadReg, loadAcc, halt; //Control outputs of the controller FSM
 wire [1:0] selACC; //Output from controller FSM. Determines if ACC input is the ALU result, output from the register file, or the instruction immediate value
-wire [3:0] aluOp; //Output from controller FSM. Determines the ALU operatioin performed
+wire [3:0] aluOp; //Output from controller FSM. Determines the ALU operation performed
 wire flagZ, flagN, flagC; //Output flags from ALU, Z=>Zero N=>Negative C=>Carry
 wire [7:0] PCinput; //Instruction memory address value that will become the next instruction if loadPC is 1
 wire [7:0] RFoutput; //Output of the register determined by the read address which is always the immediate value of the instruction
